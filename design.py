@@ -1,6 +1,6 @@
 import pygame, random
 import os, time, math
-
+ww = False
 w = 1200
 h = 600
 fps = 60
@@ -189,6 +189,11 @@ class Player(pygame.sprite.Sprite):
             self.change_y = -16
         rect = self.rect
 
+    def down(self):
+        global rect
+        self.change_y = 16
+        rect = self.rect
+
     # Передвижение игрока
     def go_left(self):
         global zzz
@@ -288,6 +293,9 @@ class Level_01(Level):
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, speedx):
+
+        global ww
+        ww = True
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load('Стрела.png')
         if speedx < 0:
@@ -298,30 +306,17 @@ class Bullet(pygame.sprite.Sprite):
         self.speedx = speedx
 
     def update(self):
+        global ww
+        global mx, my
         self.rect.x += self.speedx
+        if self.speedx < 0:
+            mx, my = self.rect.x - 4, self.rect.y + 2
+        else:
+            mx, my = self.rect.x + 67, self.rect.y + 2
         if self.rect.x > SCREEN_WIDTH + 200:
             self.kill()
         elif self.rect.x < -200:
             self.kill()
-
-
-class Particles:
-    def __init__(self, x, y):
-        mx, my = x, y
-        particles.append([[mx, my], [random.randint(0, 20) / 10 - 1, -2], random.randint(4, 6)])
-
-    def update(self):
-        particle = particles[0]
-        particle[0][0] += particle[1][0]
-        particle[2] -= 0.1
-        particle[1][1] += 0.1
-        self.rect = pygame.draw.circle(screen, (226, 88, 34), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
-        bullets.add(
-            self.rect)
-        pygame.draw.circle(screen, (226, 88, 34), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
-        if particle[2] <= 0:
-            particles.remove(particle)
-
 
 k = 0
 bullets = pygame.sprite.Group()
@@ -381,6 +376,8 @@ def main():
                         player.go_right()
                     if event.key == pygame.K_UP or event.key == pygame.K_w:
                         player.jump()
+                    if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                        player.down()
 
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT and player.change_x < 0 or event.key == pygame.K_a and \
@@ -420,6 +417,17 @@ def main():
         # Рисуем объекты на окне
         current_level.draw(screen)
         active_sprite_list.draw(screen)
+
+        if ww:
+            particles.append([[mx, my], [random.randint(0, 20) / 10 - 1, -2], random.randint(4, 6)])
+            for particle in particles:
+                particle[0][1] -= particle[1][0]
+
+                particle[2] -= 0.1
+                particle[1][1] += 0.1
+                pygame.draw.circle(screen, (226, 88, 34), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
+                if particle[2] <= 0:
+                    particles.remove(particle)
 
         # Устанавливаем количество фреймов
         clock.tick(30)
