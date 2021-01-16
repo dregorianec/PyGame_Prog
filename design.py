@@ -79,6 +79,21 @@ class Player(pygame.sprite.Sprite):
         # Передвигаем его на право/лево
         # change_x будет меняться позже при нажатии на стрелочки клавиатуры
         self.rect.x += self.change_x
+        if self.change_x != 0:
+            if self.k != 60:
+                self.image = pygame.image.load('бег/' + str(pers[int(self.k)]))
+                if not self.right:
+                    self.flip()
+                self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+                self.k += 1
+            else:
+                self.k = 0
+        elif k == 0:
+            self.image = pygame.image.load('imgonline-com-ua-Resize-7XzS01XpL1HN9.png')
+            if not zzz:
+                self.flip()
+                self.right = True
+                self.zzz = False
 
         # Следим ударяем ли мы какой-то другой объект, платформы, например
         block_hit_list = pygame.sprite.spritecollide(self, self.level.platform_list, False)
@@ -123,7 +138,6 @@ class Player(pygame.sprite.Sprite):
             self.rect.y = SCREEN_HEIGHT - self.rect.height
         rect = self.rect
 
-
     def jump(self):
         global rect
         # Обработка прыжка
@@ -146,6 +160,7 @@ class Player(pygame.sprite.Sprite):
         if self.right:  # Проверяем куда он смотрит и если что, то переворачиваем его
             self.flip()
             self.right = False
+        zzz = False
 
     def go_right(self):
         global zzz
@@ -153,6 +168,7 @@ class Player(pygame.sprite.Sprite):
         if not self.right:
             self.flip()
             self.right = True
+        zzz = True
 
     def stop(self):
         global zzz
@@ -161,6 +177,7 @@ class Player(pygame.sprite.Sprite):
         if not self.right and self.k != 0:
             self.flip()
             self.right = True
+            zzz = False
         self.k = 0
         self.change_x = 0
 
