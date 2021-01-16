@@ -305,6 +305,24 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 
+class Particles:
+    def __init__(self, x, y):
+        mx, my = x, y
+        particles.append([[mx, my], [random.randint(0, 20) / 10 - 1, -2], random.randint(4, 6)])
+
+    def update(self):
+        particle = particles[0]
+        particle[0][0] += particle[1][0]
+        particle[2] -= 0.1
+        particle[1][1] += 0.1
+        self.rect = pygame.draw.circle(screen, (226, 88, 34), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
+        bullets.add(
+            self.rect)
+        pygame.draw.circle(screen, (226, 88, 34), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
+        if particle[2] <= 0:
+            particles.remove(particle)
+
+
 k = 0
 bullets = pygame.sprite.Group()
 
@@ -376,6 +394,14 @@ def main():
                     if event.button == 3:
                         if player.change_x == 0 and player.change_y == 0:
                             player.Shoot()
+                            k += 1
+                            if k == 58:
+                                k = 0
+        if k != 0:
+            player.Shoot()
+            k += 1
+            if k == 58:
+                k = 0
         # Обновляем игрока
         active_sprite_list.update()
 
@@ -406,4 +432,3 @@ def main():
 
 
 main()
-
