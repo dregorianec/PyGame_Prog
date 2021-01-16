@@ -79,6 +79,26 @@ class Player(pygame.sprite.Sprite):
         # Передвигаем его на право/лево
         # change_x будет меняться позже при нажатии на стрелочки клавиатуры
         self.rect.x += self.change_x
+        if self.change_y != 1 and self.change_y != 0:
+            self.image = pygame.image.load('прыг/' + str(prig[15]))
+            if not zzz:
+                self.flip()
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        elif self.change_x != 0:
+            if self.k != 60:
+                self.image = pygame.image.load('бег/' + str(pers[int(self.k)]))
+                if not self.right:
+                    self.flip()
+                self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+                self.k += 1
+            else:
+                self.k = 0
+        elif k == 0:
+            self.image = pygame.image.load('imgonline-com-ua-Resize-7XzS01XpL1HN9.png')
+            if not zzz:
+                self.flip()
+                self.right = True
+                self.zzz = False
 
         # Следим ударяем ли мы какой-то другой объект, платформы, например
         block_hit_list = pygame.sprite.spritecollide(self, self.level.platform_list, False)
@@ -123,6 +143,36 @@ class Player(pygame.sprite.Sprite):
             self.rect.y = SCREEN_HEIGHT - self.rect.height
         rect = self.rect
 
+    def Shoot(self):
+        global zzz
+        global k
+        speedx = 25
+        if not zzz:
+            speedx *= -1
+        else:
+            speedx *= 1
+        if k == 8:
+            shoot_sound = pygame.mixer.Sound('tetiva.wav')
+            shoot_sound.play()
+        # if self.change_y == 0 and self.change_x == 0:
+        if self.c != 57:
+            self.image = pygame.image.load('стрельба/' + str(sshot[self.c]))
+            if not zzz:
+                self.flip()
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+            self.c += 1
+            if self.c == 35:
+                shoot_sound = pygame.mixer.Sound('strela.wav')
+                shoot_sound.play()
+            if self.c == 45:
+                if speedx < 0:
+                    bullet = Bullet(self.rect.centerx - 43, self.rect.centery - 15, speedx)
+                else:
+                    bullet = Bullet(self.rect.centerx - 27, self.rect.centery - 15, speedx)
+                bullets.add(bullet)
+                active_sprite_list.add(bullet)
+        else:
+            self.c = 0
 
     def jump(self):
         global rect
@@ -146,6 +196,7 @@ class Player(pygame.sprite.Sprite):
         if self.right:  # Проверяем куда он смотрит и если что, то переворачиваем его
             self.flip()
             self.right = False
+        zzz = False
 
     def go_right(self):
         global zzz
@@ -153,6 +204,7 @@ class Player(pygame.sprite.Sprite):
         if not self.right:
             self.flip()
             self.right = True
+        zzz = True
 
     def stop(self):
         global zzz
@@ -161,6 +213,7 @@ class Player(pygame.sprite.Sprite):
         if not self.right and self.k != 0:
             self.flip()
             self.right = True
+            zzz = False
         self.k = 0
         self.change_x = 0
 
@@ -233,6 +286,23 @@ class Level_01(Level):
             self.platform_list.add(block)
 
 
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, speedx):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('Стрела.png')
+        if speedx < 0:
+            self.image = pygame.transform.flip(self.image, True, False)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.speedx = speedx
+
+    def update(self):
+        self.rect.x += self.speedx
+        if self.rect.x > SCREEN_WIDTH + 200:
+            self.kill()
+        elif self.rect.x < -200:
+            self.kill()
 
 
 k = 0
@@ -302,6 +372,10 @@ def main():
                             player.change_x > 0:
                         player.stop()
 
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 3:
+                        if player.change_x == 0 and player.change_y == 0:
+                            player.Shoot()
         # Обновляем игрока
         active_sprite_list.update()
 
@@ -332,3 +406,4 @@ def main():
 
 
 main()
+
