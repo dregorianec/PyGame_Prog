@@ -3,14 +3,21 @@ import os, math, time
 from datetime import datetime
 
 platform_list = pygame.sprite.Group()
-# Переменные для установки ширины и высоты окна
-SCREEN_WIDTH = 1500  # 1500
+
+particles = []
+SCREEN_WIDTH = 1500  # 1500   # Переменные для установки ширины и высоты окна
 SCREEN_HEIGHT = 700  # 700
+# счетчик
+qqw = 0
+# флажки
+flag = True
+flag1 = False
+flag3 = True
 # Подключение фото для заднего фона
 # Здесь лишь создание переменной, вывод заднего фона ниже в коде
 bg = pygame.image.load('blue.jpeg')
 sky = pygame.image.load('sky.jpg')
-# Класс, описывающий поведение главного игрока
+# анимации
 directory = 'босс/прыжок'
 files = os.listdir(directory)
 images = filter(lambda x: x.endswith('.gif'), files)
@@ -19,10 +26,16 @@ directory = 'босс/топ'
 files = os.listdir(directory)
 images = filter(lambda x: x.endswith('.gif'), files)
 boss_top = list(images)
+directory = 'босс/шар'
+files = os.listdir(directory)
+images = filter(lambda x: x.endswith('.gif'), files)
+boss_ball = list(images)
 der = 0
-obj = ['platform.png', '2187.png', 'звезда.png', 'роза.png', 'шар звезды.png', 'шип розы.png', 'восклицательный.png']
+obj = ['platform.png', '2187.png', 'звезда.png', 'роза.png', 'шар звезды.png', 'шип розы.png', 'восклицательный.png',
+       'малая роза.png']
 
 
+# Класс, описывающий поведение главного игрока
 class Player(pygame.sprite.Sprite):
     # Методы
     def __init__(self):
@@ -61,7 +74,7 @@ class Platform(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
 
-class Rel_plat(pygame.sprite.Sprite):
+class Rel_plat(pygame.sprite.Sprite):  # изображения с перезарядкой
     def __init__(self, width):
         # Конструктор платформ
         super().__init__()
@@ -102,7 +115,7 @@ class Level(object):
 
 # Класс, что описывает где будут находится все платформы
 # на определенном уровне игры
-class Level_01(Level):
+class Level_01(Level):  # НЕДОДЕЛАНО
     def __init__(self, player):
         # Вызываем родительский конструктор
         Level.__init__(self, player, bg)
@@ -133,7 +146,7 @@ class Level_01(Level):
             self.reload_list.add(block)
 
 
-class Level_02(Level):
+class Level_02(Level):  # второй уровень (недоделано)
     def __init__(self, player):
         # Вызываем родительский конструктор
         Level.__init__(self, player, sky)
@@ -165,7 +178,7 @@ class Level_02(Level):
             self.reload_list.add(block)
 
 
-class Plat_zvez(pygame.sprite.Sprite):
+class Plat_zvez(pygame.sprite.Sprite):  # платформа со звездой
     def __init__(self):
         self.change_y = -0.5
         super().__init__()
@@ -174,24 +187,44 @@ class Plat_zvez(pygame.sprite.Sprite):
 
     def update(self):
         global time
-        global der
+        global scet
         if self.rect.y != 150:
             self.rect.y += self.change_y
-        elif der == 15:
+        elif scet == 15:
 
             bullet = Bullet(self.rect.x, self.rect.y + random.randint(20, 250), random.randint(-8, -5))
             bullets.add(bullet)
-            der = 0
+            scet = 0
         else:
-            der += 1
+            scet += 1
             print((datetime.now() - time).total_seconds())
 
 
-class Bullet(pygame.sprite.Sprite):
+class Plat_roz(pygame.sprite.Sprite):  # платформа с розой
+    def __init__(self):
+        self.change_y = 350
+        super().__init__()
+        self.image = pygame.image.load('объекты/' + str(obj[7]))
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        global time
+        global dre
+        if self.rect.y >= SCREEN_HEIGHT and dre == 24:
+            self.rect.y -= self.change_y
+            dre = 0
+        elif dre == 24:
+            self.rect.y += self.change_y
+            dre = 0
+        else:
+            dre += 1
+
+
+class Bullet(pygame.sprite.Sprite):  # класс для пуль
     def __init__(self, x, y, speedx):
 
-        global ww
-        ww = True
+        global flagok
+        flagok = True
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((10, 10))
         self.image.fill((0, 0, 0))
@@ -209,7 +242,7 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 
-class Fly(pygame.sprite.Sprite):
+class Fly(pygame.sprite.Sprite):  # класс для самолёта
     def __init__(self):
         self.change_x = 10
         super().__init__()
@@ -220,7 +253,7 @@ class Fly(pygame.sprite.Sprite):
         self.rect.x += self.change_x
 
 
-class Boss(pygame.sprite.Sprite):
+class Boss(pygame.sprite.Sprite):  # класс для босса
     def __init__(self):
         self.change_x = 10
         super().__init__()
@@ -231,50 +264,104 @@ class Boss(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def update(self, k):
-        global qq, qz
+        global chetchik1, schetchik2, schetchik3, flag, flag1, flag3
         if k == 0:
             self.rect.x += self.change_x
         if k == 1:
             if int(self.rect.y) < SCREEN_HEIGHT - int(self.rect.top) + 140:
                 self.rect.y += 8
                 self.rect.x += 8
-                self.image = self.image = pygame.image.load('босс/прыжок/' + boss_jump[int(qq / 2.5)])
-                if qq != len(boss_jump) * 2.5:
-                    qq += 1
+                self.image = self.image = pygame.image.load('босс/прыжок/' + boss_jump[int(chetchik1 / 2.5)])
+                if chetchik1 != len(boss_jump) * 2.5:
+                    chetchik1 += 1
                 self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
         if k == 2:
-            self.image = self.image = pygame.image.load('босс/топ/' + boss_top[int(qz / 2.5)])
+            self.image = self.image = pygame.image.load('босс/топ/' + boss_top[int(schetchik2 / 2.5)])
             self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
-            if qz < (len(boss_top) - 1) * 2.5:
-                qz += 1
-            if qz == 86 * 2.5:
+            if schetchik2 < (len(boss_top) - 1) * 2.5:
+                schetchik2 += 1
+            if schetchik2 == 86 * 2.5:
                 shoot_sound = pygame.mixer.Sound('oh my.wav')
                 shoot_sound.set_volume(0.2)
                 shoot_sound.play()
         if k == 3:
-            pass
+            chetchik1 = 0
+        if k == 4:
+            if chetchik1 <= (len(boss_jump)) / 2 + 4:
+                self.rect.y -= 8
+            elif chetchik1 <= (len(boss_jump) - 2) * 1.5:
+                self.rect.y += 8
+            else:
+                self.rect.y += 4
+            self.image = self.image = pygame.image.load('босс/прыжок/' + boss_jump[int(chetchik1 / 1.5)])
+            if chetchik1 <= (len(boss_jump) - 1) * 1.5:
+                chetchik1 += 1
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        if k == 5:
+
+            self.image = self.image = pygame.image.load('босс/шар/' + boss_ball[int(schetchik3 / 2.5)])
+            if schetchik3 <= 32 * 2.5 and flag:
+                schetchik3 += 1
+                self.rect.y += 2
+
+            else:
+                flag = False
+            if not flag:
+                if schetchik3 <= 32 * 2.5:
+                    schetchik3 += 1
+                else:
+                    schetchik3 = 20 * 2.5
+                if self.rect.x >= 0 and not flag1 and flag3:
+                    self.rect.x -= 30
+                elif self.rect.y >= 0 and not flag1 and flag3:
+                    self.rect.y -= 30
+                elif self.rect.x <= SCREEN_WIDTH - 121 and flag3:
+                    self.rect.x += 30
+                    flag1 = True
+                elif self.rect.y <= SCREEN_HEIGHT - 121 and flag3:
+                    self.rect.y += 30
+                elif flag1:
+                    schetchik3 = 0
+                    flag1 = False
+                    flag3 = False
+                elif not flag1:
+                    if self.rect.x >= SCREEN_WIDTH - 450:
+                        self.rect.x -= 12
+                    self.image = self.image = pygame.image.load(
+                        'босс/шар/' + boss_ball[len(boss_ball) - 1 - int(schetchik3 / 2.5)])
+                    if schetchik3 >= len(boss_ball) * 2.5 - 2.5:
+                        schetchik3 -= 2.5
+                        self.rect.y -= 3
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        if k == 6:
+            self.image = pygame.image.load('босс/топ/frame_00_delay-0.01s.gif')
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
 
 
+# создание групп объектов
 active_sprite_list = pygame.sprite.Group()
 bosar = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
-
-pygame.mixer.init()
-pygame.mixer_music.load('The_Prodigy_-_Invaders_Must_Die_47960596.MP3')
-pygame.mixer_music.set_volume(0.4)
-pygame.mixer_music.play()
+dodo = pygame.sprite.Group()
 
 
 # Основная функция прогарммы
 def main_l():
+    global dre
     global screen
-    # Инициализация
     global level
     global time
-    global qq, qz
+    global chetchik1, schetchik2
+    # Инициализация
+    pygame.mixer.init()
+    pygame.mixer_music.load('The_Prodigy_-_Invaders_Must_Die_47960596.MP3')
+    pygame.mixer_music.set_volume(0.4)
+    pygame.mixer_music.play()
+    os.environ['SDL_VIDEO_WINDOW_POS'] = '50, 50'
     pygame.init()
-    qq = 0
-    qz = 0
+    dre = 0
+    chetchik1 = 0
+    schetchik2 = 0
     # Установка высоты и ширины
     size = [SCREEN_WIDTH, SCREEN_HEIGHT]
     screen = pygame.display.set_mode(size)
@@ -284,6 +371,8 @@ def main_l():
 
     # Создаем игрока
     plat = Plat_zvez()
+    ros_1 = Plat_roz()
+    ros_2 = Plat_roz()
     player = Player()
     fly = Fly()
     boss = Boss()
@@ -297,17 +386,25 @@ def main_l():
     current_level_no = 0
     current_level = level_list[current_level_no]
 
+    # присваиваем объектам нужные значения
     player.level = current_level
     plat.rect.x = 650
     plat.rect.y = 850
+    ros_1.rect.x = 0
+    ros_1.rect.y = 700
+    ros_2.rect.x = 553
+    ros_2.rect.y = 700
     fly.rect.x = -200
     fly.rect.y = 10
     player.rect.x = 240
     boss.rect.x = -200
     boss.rect.y = 55
     player.rect.y = SCREEN_HEIGHT - player.rect.height
+    play = pygame.sprite.Group()
+    play.add(player)
     active_sprite_list.add(player)
     bosar.add(boss)
+    dodo.add(plat, ros_1, ros_2)
     # active_sprite_list.add(boss)
     # Цикл будет до тех пор, пока пользователь не нажмет кнопку закрытия
     done = False
@@ -321,13 +418,8 @@ def main_l():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # Если закрыл программу, то останавливаем цикл
                 done = True
-        # Обновляем игрока
-
         # Обновляем объекты на сцене
         current_level.update()
-        # Если игрок приблизится к правой стороне, то дальше его не двигаем
-
-        # Если игрок приблизится к левой стороне, то дальше его не двигаем
         # if int((datetime.now() - time).total_seconds()) == 5:  # ПЕРЕКЛЮЧЕНИЕ УРОВНЕЙ
         #     current_level_no = 1
         #     current_level = level_list[current_level_no]
@@ -346,19 +438,63 @@ def main_l():
             boss.update(2)
             active_sprite_list.add(boss)
             active_sprite_list.add(fly)
-        elif 22.4 <= int((datetime.now() - time).total_seconds()) < 48.5:
+        elif 22.4 <= int((datetime.now() - time).total_seconds()) < 48.025:
             boss.update(3)
             plat.update()
             active_sprite_list.add(boss)
             active_sprite_list.add(plat)
-        elif 48.5 <= int((datetime.now() - time).total_seconds()):
-            pass
+        elif 48.025 <= int((datetime.now() - time).total_seconds()) < 61:
+            boss.update(3)
+            plat.update()
+            active_sprite_list.add(boss)
+            active_sprite_list.add(plat)
+            active_sprite_list.add(ros_1)
+            active_sprite_list.add(ros_2)
+        elif 61 <= int((datetime.now() - time).total_seconds()) <= 61.4:
+            boss.update(4)
+            plat.update()
+            active_sprite_list.add(boss)
+            hihi = pygame.sprite.spritecollide(boss, dodo, True)
+            if not hihi:
+                active_sprite_list.add(plat)
+                active_sprite_list.add(ros_1)
+                active_sprite_list.add(ros_2)
+
+        elif 61.4 <= int((datetime.now() - time).total_seconds()):
+            boss.update(5)
+            plat.update()
+            active_sprite_list.add(boss)
+            hihi = pygame.sprite.spritecollide(boss, dodo, True)
+            if not hihi:
+                active_sprite_list.add(plat)
+                active_sprite_list.add(ros_1)
+                active_sprite_list.add(ros_2)
+
         bosar.draw(screen)
 
         pygame.sprite.spritecollide(boss, platform_list, True)
         pygame.sprite.groupcollide(platform_list, bullets, True, False)
-        pygame.sprite.spritecollide(plat, platform_list, True)
+        hit = pygame.sprite.spritecollide(plat, platform_list, True)
+        pygame.sprite.spritecollide(ros_1, bullets, True)
+        pygame.sprite.spritecollide(ros_2, bullets, True)
+        hihi = pygame.sprite.spritecollide(boss, dodo, True)
+        hits = pygame.sprite.spritecollide(boss, play, True)
+        if hit:
+            for i in range(500):
+                particles.append(
+                    [[plat.rect.x - random.randint(-25, 25) + 150, plat.rect.top - random.randint(-50, 50)],
+                     [random.randint(0, 20) / 10 - 1, -2], random.randint(2, 4)])
+            for particle in particles:
+                particle[0][0] -= particle[1][0]
+                particle[2] -= 0.1
+                particle[1][1] += 0.1
+                pygame.draw.circle(screen, (0, 0, 0), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
+                if particle[2] <= 2:
+                    particles.remove(particle)
         #    player.level = current_level
+        if hits:
+            print('Game over')
+            # exit()
         # Рисуем объекты на окне
         bosar.draw(screen)
         bullets.update()
@@ -369,6 +505,8 @@ def main_l():
         active_sprite_list.update()
         active_sprite_list.remove(fly)
         active_sprite_list.remove(plat)
+        active_sprite_list.remove(ros_1)
+        active_sprite_list.remove(ros_2)
         # Устанавливаем количество фреймов
         clock.tick(30)
         # Обновляем экран после рисования объектов
