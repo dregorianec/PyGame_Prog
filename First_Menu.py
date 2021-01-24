@@ -1,0 +1,520 @@
+import pygame, random
+import os, math, time
+from datetime import datetime
+
+platform_list = pygame.sprite.Group()
+
+particles = []
+SCREEN_WIDTH = 1500  # 1500   # Переменные для установки ширины и высоты окна
+SCREEN_HEIGHT = 700  # 700
+# счетчик
+qqw = 0
+# флажки
+flag = True
+flag1 = False
+flag3 = True
+# Подключение фото для заднего фона
+# Здесь лишь создание переменной, вывод заднего фона ниже в коде
+bg = pygame.image.load('blue.jpeg')
+sky = pygame.image.load('sky.jpg')
+# анимации
+directory = 'босс/прыжок'
+files = os.listdir(directory)
+images = filter(lambda x: x.endswith('.gif'), files)
+boss_jump = list(images)
+directory = 'босс/топ'
+files = os.listdir(directory)
+images = filter(lambda x: x.endswith('.gif'), files)
+boss_top = list(images)
+directory = 'босс/шар'
+files = os.listdir(directory)
+images = filter(lambda x: x.endswith('.gif'), files)
+boss_ball = list(images)
+der = 0
+obj = ['platform.png', '2187.png', 'звезда.png', 'роза.png', 'шар звезды.png', 'шип розы.png', 'восклицательный.png',
+       'малая роза.png']
+
+
+# Класс, описывающий поведение главного игрока
+class Player(pygame.sprite.Sprite):
+    # Методы
+    def __init__(self):
+        global rect
+        self.change_tp = 60
+        self.k = 0
+        self.b = 15
+        self.c = 0
+        self.speed = False
+        # Стандартный конструктор класса
+        # Нужно ещё вызывать конструктор родительского класса
+        super().__init__()
+
+        # Создаем изображение для игрока
+        # Изображение находится в этой же папке проекта
+        self.image = pygame.image.load('imgonline-com-ua-Resize-7XzS01XpL1HN9.png')
+
+        # Установите ссылку на изображение прямоугольника
+        self.rect = self.image.get_rect()
+        rect = self.rect
+        self.change_tp_per = 0
+        # Задаем вектор скорости игрока
+        self.change_x = 0
+        self.change_y = 0
+
+
+# Класс для описания платформы
+class Platform(pygame.sprite.Sprite):
+    def __init__(self, img):
+        # Конструктор платформ
+        super().__init__()
+        # Также указываем фото платформы
+        self.image = pygame.image.load('объекты/' + str(obj[img]))
+
+        # Установите ссылку на изображение прямоугольника
+        self.rect = self.image.get_rect()
+
+
+class Rel_plat(pygame.sprite.Sprite):  # изображения с перезарядкой
+    def __init__(self, width):
+        # Конструктор платформ
+        super().__init__()
+        # Также указываем фото платформы
+        if width == 0:
+            self.image = pygame.image.load('Strel.png')
+        else:
+            self.image = pygame.image.load('Tp_Rel.png')
+
+        # Установите ссылку на изображение прямоугольника
+        self.rect = self.image.get_rect()
+
+
+# Класс для расстановки платформ на сцене
+class Level(object):
+    def __init__(self, player, bgc):
+        self.bgc = bgc
+        # Создаем группу спрайтов (поместим платформы различные сюда)
+
+        self.reload_list = pygame.sprite.Group()
+        # Ссылка на основного игрока
+        self.player = player
+
+    # Чтобы все рисовалось, то нужно обновлять экран
+    # При вызове этого метода обновление будет происходить
+    def update(self):
+        platform_list.update()
+        self.reload_list.update()
+
+    # Метод для рисования объектов на сцене
+    def draw(self, screen):
+        # Рисуем задний фон
+        screen.blit(self.bgc, (0, 0))
+        # Рисуем все платформы из группы спрайтов
+        platform_list.draw(screen)
+        self.reload_list.draw(screen)
+
+
+# Класс, что описывает где будут находится все платформы
+# на определенном уровне игры
+class Level_01(Level):  # НЕДОДЕЛАНО
+    def __init__(self, player):
+        # Вызываем родительский конструктор
+        Level.__init__(self, player, bg)
+        global level
+        # Массив с данными про платформы. Данные в таком формате:
+        # ширина, высота, x и y позиция
+        level = [
+            [0, 600, 580],
+            [0, 200, 380],
+            [0, 400, 480],
+            [0, 1100, 500],
+            [0, 900, 400],
+        ]
+        rel = [[10, 10], [70, 10]]
+
+        # Перебираем массив и добавляем каждую платформу в группу спрайтов - platform_list
+        for platform in level:
+            block = Platform(platform[0])
+            block.rect.x = platform[1]
+            block.rect.y = platform[2]
+            block.player = self.player
+            platform_list.add(block)
+        for platform in rel:
+            block = Rel_plat(rel.index(platform))
+            block.rect.x = platform[0]
+            block.rect.y = platform[1]
+            block.player = self.player
+            self.reload_list.add(block)
+
+
+class Level_02(Level):  # второй уровень (недоделано)
+    def __init__(self, player):
+        # Вызываем родительский конструктор
+        Level.__init__(self, player, sky)
+
+        # Массив с данными про платформы. Данные в таком формате:
+        # ширина, высота, x и y позиция
+        level = [
+            # [0, 500, 500],
+            # [0, 200, 400],
+            # [0, 600, 300],
+            [1, 500, 380],
+            [2, 300, 480],
+            [3, 700, 280],
+        ]
+        rel = [[10, 10], [70, 10]]
+
+        # Перебираем массив и добавляем каждую платформу в группу спрайтов - platform_list
+        for platform in level:
+            block = Platform(platform[0])
+            block.rect.x = platform[1]
+            block.rect.y = platform[2]
+            block.player = self.player
+            platform_list.add(block)
+        for platform in rel:
+            block = Rel_plat(rel.index(platform))
+            block.rect.x = platform[0]
+            block.rect.y = platform[1]
+            block.player = self.player
+            self.reload_list.add(block)
+
+
+class Plat_zvez(pygame.sprite.Sprite):  # платформа со звездой
+    def __init__(self):
+        self.change_y = -0.5
+        super().__init__()
+        self.image = pygame.image.load('объекты/' + str(obj[2]))
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        global time
+        global scet
+        if self.rect.y != 150:
+            self.rect.y += self.change_y
+        elif scet == 15:
+
+            bullet = Bullet(self.rect.x, self.rect.y + random.randint(20, 250), random.randint(-8, -5))
+            bullets.add(bullet)
+            scet = 0
+        else:
+            scet += 1
+            print((datetime.now() - time).total_seconds())
+
+
+class Plat_roz(pygame.sprite.Sprite):  # платформа с розой
+    def __init__(self):
+        self.change_y = 350
+        super().__init__()
+        self.image = pygame.image.load('объекты/' + str(obj[7]))
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        global time
+        global dre
+        if self.rect.y >= SCREEN_HEIGHT and dre == 24:
+            self.rect.y -= self.change_y
+            dre = 0
+        elif dre == 24:
+            self.rect.y += self.change_y
+            dre = 0
+        else:
+            dre += 1
+
+
+class Bullet(pygame.sprite.Sprite):  # класс для пуль
+    def __init__(self, x, y, speedx):
+
+        global flagok
+        flagok = True
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((10, 10))
+        self.image.fill((0, 0, 0))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.speedx = speedx
+
+    def update(self):
+        self.rect.x += self.speedx
+        self.rect.y += random.randint(3, 8)
+        if self.rect.x > SCREEN_WIDTH + 200:
+            self.kill()
+        elif self.rect.x < -200:
+            self.kill()
+
+
+class Fly(pygame.sprite.Sprite):  # класс для самолёта
+    def __init__(self):
+        self.change_x = 10
+        super().__init__()
+        self.image = pygame.image.load('fly.png')
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        self.rect.x += self.change_x
+
+
+class Boss(pygame.sprite.Sprite):  # класс для босса
+    def __init__(self):
+        self.change_x = 10
+        super().__init__()
+        self.image = pygame.image.load('босс/топ/frame_00_delay-0.01s.gif')
+        # cropped = pygame.Surface((80, 80))
+        # cropped.blit(self.image, (0, 0), (30, 30, 80, 80))
+        # self.image = cropped
+        self.rect = self.image.get_rect()
+
+    def update(self, k):
+        global chetchik1, schetchik2, schetchik3, flag, flag1, flag3
+        if k == 0:
+            self.rect.x += self.change_x
+        if k == 1:
+            if int(self.rect.y) < SCREEN_HEIGHT - int(self.rect.top) + 140:
+                self.rect.y += 8
+                self.rect.x += 8
+                self.image = self.image = pygame.image.load('босс/прыжок/' + boss_jump[int(chetchik1 / 2.5)])
+                if chetchik1 != len(boss_jump) * 2.5:
+                    chetchik1 += 1
+                self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        if k == 2:
+            self.image = self.image = pygame.image.load('босс/топ/' + boss_top[int(schetchik2 / 2.5)])
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+            if schetchik2 < (len(boss_top) - 1) * 2.5:
+                schetchik2 += 1
+            if schetchik2 == 86 * 2.5:
+                shoot_sound = pygame.mixer.Sound('oh my.wav')
+                shoot_sound.set_volume(0.2)
+                shoot_sound.play()
+        if k == 3:
+            chetchik1 = 0
+        if k == 4:
+            if chetchik1 <= (len(boss_jump)) / 2 + 4:
+                self.rect.y -= 8
+            elif chetchik1 <= (len(boss_jump) - 2) * 1.5:
+                self.rect.y += 8
+            else:
+                self.rect.y += 4
+            self.image = self.image = pygame.image.load('босс/прыжок/' + boss_jump[int(chetchik1 / 1.5)])
+            if chetchik1 <= (len(boss_jump) - 1) * 1.5:
+                chetchik1 += 1
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        if k == 5:
+
+            self.image = self.image = pygame.image.load('босс/шар/' + boss_ball[int(schetchik3 / 2.5)])
+            if schetchik3 <= 32 * 2.5 and flag:
+                schetchik3 += 1
+                self.rect.y += 2
+
+            else:
+                flag = False
+            if not flag:
+                if schetchik3 <= 32 * 2.5:
+                    schetchik3 += 1
+                else:
+                    schetchik3 = 20 * 2.5
+                if self.rect.x >= 0 and not flag1 and flag3:
+                    self.rect.x -= 30
+                elif self.rect.y >= 0 and not flag1 and flag3:
+                    self.rect.y -= 30
+                elif self.rect.x <= SCREEN_WIDTH - 121 and flag3:
+                    self.rect.x += 30
+                    flag1 = True
+                elif self.rect.y <= SCREEN_HEIGHT - 121 and flag3:
+                    self.rect.y += 30
+                elif flag1:
+                    schetchik3 = 0
+                    flag1 = False
+                    flag3 = False
+                elif not flag1:
+                    if self.rect.x >= SCREEN_WIDTH - 450:
+                        self.rect.x -= 12
+                    self.image = self.image = pygame.image.load(
+                        'босс/шар/' + boss_ball[len(boss_ball) - 1 - int(schetchik3 / 2.5)])
+                    if schetchik3 >= len(boss_ball) * 2.5 - 2.5:
+                        schetchik3 -= 2.5
+                        self.rect.y -= 3
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        if k == 6:
+            self.image = pygame.image.load('босс/топ/frame_00_delay-0.01s.gif')
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+
+
+# создание групп объектов
+active_sprite_list = pygame.sprite.Group()
+bosar = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
+dodo = pygame.sprite.Group()
+
+
+# Основная функция прогарммы
+def main_l():
+    global dre
+    global screen
+    global level
+    global time
+    global chetchik1, schetchik2
+    # Инициализация
+    pygame.mixer.init()
+    pygame.mixer_music.load('The_Prodigy_-_Invaders_Must_Die_47960596.MP3')
+    pygame.mixer_music.set_volume(0.4)
+    pygame.mixer_music.play()
+    os.environ['SDL_VIDEO_WINDOW_POS'] = '50, 50'
+    pygame.init()
+    dre = 0
+    chetchik1 = 0
+    schetchik2 = 0
+    # Установка высоты и ширины
+    size = [SCREEN_WIDTH, SCREEN_HEIGHT]
+    screen = pygame.display.set_mode(size)
+    # window = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
+    # Название игры
+    pygame.display.set_caption("Платформер")
+
+    # Создаем игрока
+    plat = Plat_zvez()
+    ros_1 = Plat_roz()
+    ros_2 = Plat_roz()
+    player = Player()
+    fly = Fly()
+    boss = Boss()
+
+    # Создаем все уровни
+    level_list = list()
+    level_list.append(Level_01(player))
+    # level_list.append(Level_02(player))
+
+    # Устанавливаем текущий уровень
+    current_level_no = 0
+    current_level = level_list[current_level_no]
+
+    # присваиваем объектам нужные значения
+    player.level = current_level
+    plat.rect.x = 650
+    plat.rect.y = 850
+    ros_1.rect.x = 0
+    ros_1.rect.y = 700
+    ros_2.rect.x = 553
+    ros_2.rect.y = 700
+    fly.rect.x = -200
+    fly.rect.y = 10
+    player.rect.x = 240
+    boss.rect.x = -200
+    boss.rect.y = 55
+    player.rect.y = SCREEN_HEIGHT - player.rect.height
+    play = pygame.sprite.Group()
+    play.add(player)
+    active_sprite_list.add(player)
+    bosar.add(boss)
+    dodo.add(plat, ros_1, ros_2)
+    # active_sprite_list.add(boss)
+    # Цикл будет до тех пор, пока пользователь не нажмет кнопку закрытия
+    done = False
+
+    # Используется для управления скоростью обновления экрана
+    clock = pygame.time.Clock()
+    time = datetime.now()
+    # Основной цикл программы
+    while not done:
+        # Отслеживание действий
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:  # Если закрыл программу, то останавливаем цикл
+                done = True
+        # Обновляем объекты на сцене
+        current_level.update()
+        # if int((datetime.now() - time).total_seconds()) == 5:  # ПЕРЕКЛЮЧЕНИЕ УРОВНЕЙ
+        #     current_level_no = 1
+        #     current_level = level_list[current_level_no]
+        #     player.rect.x = 140
+        if int((datetime.now() - time).total_seconds()) < 10:
+            pass
+        if 10 <= int((datetime.now() - time).total_seconds()) <= 12.9:
+            boss.update(0)
+            active_sprite_list.add(boss)
+            active_sprite_list.add(fly)
+        elif 12.9 < int((datetime.now() - time).total_seconds()) < 15:
+            boss.update(1)
+            active_sprite_list.add(boss)
+            active_sprite_list.add(fly)
+        elif 15 <= int((datetime.now() - time).total_seconds()) < 22.4:
+            boss.update(2)
+            active_sprite_list.add(boss)
+            active_sprite_list.add(fly)
+        elif 22.4 <= int((datetime.now() - time).total_seconds()) < 48.025:
+            boss.update(3)
+            plat.update()
+            active_sprite_list.add(boss)
+            active_sprite_list.add(plat)
+        elif 48.025 <= int((datetime.now() - time).total_seconds()) < 61:
+            boss.update(3)
+            plat.update()
+            active_sprite_list.add(boss)
+            active_sprite_list.add(plat)
+            active_sprite_list.add(ros_1)
+            active_sprite_list.add(ros_2)
+        elif 61 <= int((datetime.now() - time).total_seconds()) <= 61.4:
+            boss.update(4)
+            plat.update()
+            active_sprite_list.add(boss)
+            hihi = pygame.sprite.spritecollide(boss, dodo, True)
+            if not hihi:
+                active_sprite_list.add(plat)
+                active_sprite_list.add(ros_1)
+                active_sprite_list.add(ros_2)
+
+        elif 61.4 <= int((datetime.now() - time).total_seconds()):
+            boss.update(5)
+            plat.update()
+            active_sprite_list.add(boss)
+            hihi = pygame.sprite.spritecollide(boss, dodo, True)
+            if not hihi:
+                active_sprite_list.add(plat)
+                active_sprite_list.add(ros_1)
+                active_sprite_list.add(ros_2)
+
+        bosar.draw(screen)
+
+        pygame.sprite.spritecollide(boss, platform_list, True)
+        pygame.sprite.groupcollide(platform_list, bullets, True, False)
+        hit = pygame.sprite.spritecollide(plat, platform_list, True)
+        pygame.sprite.spritecollide(ros_1, bullets, True)
+        pygame.sprite.spritecollide(ros_2, bullets, True)
+        hihi = pygame.sprite.spritecollide(boss, dodo, True)
+        hits = pygame.sprite.spritecollide(boss, play, True)
+        if hit:
+            for i in range(500):
+                particles.append(
+                    [[plat.rect.x - random.randint(-25, 25) + 150, plat.rect.top - random.randint(-50, 50)],
+                     [random.randint(0, 20) / 10 - 1, -2], random.randint(2, 4)])
+            for particle in particles:
+                particle[0][0] -= particle[1][0]
+                particle[2] -= 0.1
+                particle[1][1] += 0.1
+                pygame.draw.circle(screen, (0, 0, 0), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
+                if particle[2] <= 2:
+                    particles.remove(particle)
+        #    player.level = current_level
+        if hits:
+            print('Game over')
+            # exit()
+        # Рисуем объекты на окне
+        bosar.draw(screen)
+        bullets.update()
+        current_level.draw(screen)
+        active_sprite_list.draw(screen)
+        bullets.draw(screen)
+        active_sprite_list.remove(boss)
+        active_sprite_list.update()
+        active_sprite_list.remove(fly)
+        active_sprite_list.remove(plat)
+        active_sprite_list.remove(ros_1)
+        active_sprite_list.remove(ros_2)
+        # Устанавливаем количество фреймов
+        clock.tick(30)
+        # Обновляем экран после рисования объектов
+        pygame.display.flip()
+        pygame.display.update()
+
+    # Корректное закртытие программы
+    pygame.quit()
+
+
+main_l()
